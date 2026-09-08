@@ -31,7 +31,7 @@ struct Slider
 
 static int UpdateTextureButtons(std::span<const TextureButton> buttons, Vector2 mouse, bool clicked, bool &outConsumed)
 {
-    for (int i = 0; i < (int)buttons.size(); i++)
+    for (int i = 0; i < (int)buttons.size(); ++i)
     {
         if (CheckCollisionPointRec(mouse, buttons[i].rect))
         {
@@ -45,7 +45,7 @@ static int UpdateTextureButtons(std::span<const TextureButton> buttons, Vector2 
 
 static void DrawTextureButtons(std::span<const TextureButton> buttons, int selectedIndex)
 {
-    for (int i = 0; i < (int)buttons.size(); i++)
+    for (int i = 0; i < (int)buttons.size(); ++i)
     {
         const TextureButton &b = buttons[i];
         const Rectangle src = { 0.0f, 0.0f, (float)b.texture.width, (float)b.texture.height };
@@ -261,6 +261,10 @@ int main()
         BeginDrawing();
         ClearBackground(BLACK);
 
+        DrawGrid(grid);
+        DrawHoveredTile(grid, hovered);
+        DrawTextureButtons(textureButtons, selectedTextureIndex);
+
         DrawSlider(radiusSlider, (float)radius);
         DrawSlider(widthSlider, width);
         DrawSlider(triangleSlider, triangleChance);
@@ -268,9 +272,6 @@ int main()
 
         DrawKeyLegend(GetScreenWidth());
 
-        DrawGrid(grid);
-        DrawHoveredTile(grid, hovered);
-        DrawTextureButtons(textureButtons, selectedTextureIndex);
 
         DrawCircleV(pos, 4, WHITE);
 
