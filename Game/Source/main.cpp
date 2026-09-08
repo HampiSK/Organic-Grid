@@ -10,7 +10,6 @@
 #include <raymath.h>
 #include <rlgl.h>
 
-#include "Types.hpp"
 #include "OrganicGrid.h"
 
 
@@ -23,16 +22,16 @@ struct TextureButton
 struct Slider
 {
     Rectangle track;
-    r32 min;
-    r32 max;
+    float min;
+    float max;
     const char *label;
     bool isInteger;
 };
 
 
-static i32 UpdateTextureButtons(std::span<const TextureButton> buttons, Vector2 mouse, bool clicked, bool &outConsumed)
+static int UpdateTextureButtons(std::span<const TextureButton> buttons, Vector2 mouse, bool clicked, bool &outConsumed)
 {
-    for (i32 i = 0; i < (i32)buttons.size(); i++)
+    for (int i = 0; i < (int)buttons.size(); i++)
     {
         if (CheckCollisionPointRec(mouse, buttons[i].rect))
         {
@@ -44,31 +43,31 @@ static i32 UpdateTextureButtons(std::span<const TextureButton> buttons, Vector2 
     return -1;
 }
 
-static void DrawTextureButtons(std::span<const TextureButton> buttons, i32 selectedIndex)
+static void DrawTextureButtons(std::span<const TextureButton> buttons, int selectedIndex)
 {
-    for (i32 i = 0; i < (i32)buttons.size(); i++)
+    for (int i = 0; i < (int)buttons.size(); i++)
     {
         const TextureButton &b = buttons[i];
-        const Rectangle src = { 0.0f, 0.0f, (r32)b.texture.width, (r32)b.texture.height };
+        const Rectangle src = { 0.0f, 0.0f, (float)b.texture.width, (float)b.texture.height };
         DrawTexturePro(b.texture, src, b.rect, { 0.0f, 0.0f }, 0.0f, WHITE);
         DrawRectangleLinesEx(b.rect, selectedIndex == i ? 3.0f : 1.0f, selectedIndex == i ? YELLOW : DARKGRAY);
     }
 }
 
-static void DrawSlider(const Slider &slider, r32 value)
+static void DrawSlider(const Slider &slider, float value)
 {
-    const r32 midY = slider.track.y + slider.track.height * 0.5f;
+    const float midY = slider.track.y + slider.track.height * 0.5f;
     DrawLineEx({ slider.track.x, midY }, { slider.track.x + slider.track.width, midY }, 3.0f, DARKGRAY);
 
-    const r32 t = (value - slider.min) / (slider.max - slider.min);
-    const r32 handleX = slider.track.x + t * slider.track.width;
-    DrawCircle((i32)handleX, (i32)midY, 4.0f, LIGHTGRAY);
+    const float t = (value - slider.min) / (slider.max - slider.min);
+    const float handleX = slider.track.x + t * slider.track.width;
+    DrawCircle((int)handleX, (int)midY, 4.0f, LIGHTGRAY);
 
-    if (slider.isInteger)  DrawText(TextFormat("%s: %d", slider.label, (i32)value), (i32)slider.track.x, (i32)(slider.track.y - 18), 16, LIGHTGRAY);
-    else DrawText(TextFormat("%s: %.2f", slider.label, value), (i32)slider.track.x, (i32)(slider.track.y - 18), 16, LIGHTGRAY);
+    if (slider.isInteger)  DrawText(TextFormat("%s: %d", slider.label, (int)value), (int)slider.track.x, (int)(slider.track.y - 18), 16, LIGHTGRAY);
+    else DrawText(TextFormat("%s: %.2f", slider.label, value), (int)slider.track.x, (int)(slider.track.y - 18), 16, LIGHTGRAY);
 }
 
-static bool UpdateSlider(const Slider &slider, Vector2 mouse, bool mouseDown, r32 &value, bool &outConsumed)
+static bool UpdateSlider(const Slider &slider, Vector2 mouse, bool mouseDown, float &value, bool &outConsumed)
 {
     const Rectangle hitbox = { slider.track.x - 8, slider.track.y - 8, slider.track.width + 16, slider.track.height + 16 };
     if (!CheckCollisionPointRec(mouse, hitbox)) return false;
@@ -76,8 +75,8 @@ static bool UpdateSlider(const Slider &slider, Vector2 mouse, bool mouseDown, r3
     outConsumed = true;
     if (!mouseDown) return false;
 
-    const r32 t = Clamp((mouse.x - slider.track.x) / slider.track.width, 0.0f, 1.0f);
-    r32 newValue = slider.min + t * (slider.max - slider.min);
+    const float t = Clamp((mouse.x - slider.track.x) / slider.track.width, 0.0f, 1.0f);
+    float newValue = slider.min + t * (slider.max - slider.min);
     if (slider.isInteger) newValue = roundf(newValue);
 
     if (FloatEquals(newValue, value)) return false;
@@ -86,7 +85,7 @@ static bool UpdateSlider(const Slider &slider, Vector2 mouse, bool mouseDown, r3
     return true;
 }
 
-static void DrawKeyLegend(i32 screenWidth)
+static void DrawKeyLegend(int screenWidth)
 {
     constexpr const char *lines[] =
     {
@@ -96,8 +95,8 @@ static void DrawKeyLegend(i32 screenWidth)
         "Click - Place texture",
     };
 
-    const i32 x = screenWidth - 220;
-    i32 y = 16;
+    const int x = screenWidth - 220;
+    int y = 16;
     for (const char *line : lines)
     {
         DrawText(line, x, y, 18, LIGHTGRAY);
@@ -151,7 +150,7 @@ static void DrawGrid(OrganicGrid &grid)
         }
         else
         {
-            for (i32 edgeID : face.edges)
+            for (int edgeID : face.edges)
             {
                 if (!grid.IsValidID(edgeID)) break;
                 DrawLineV(grid.vertices[grid.edges[edgeID].from].position, grid.vertices[grid.edges[edgeID].to].position, DARKGRAY);
@@ -160,17 +159,17 @@ static void DrawGrid(OrganicGrid &grid)
     }
 }
 
-static void DrawHoveredTile(OrganicGrid &grid, i32 id)
+static void DrawHoveredTile(OrganicGrid &grid, int id)
 {
     if (id >= grid.faces.size() || id < 0) return;
 
-    const i32 centerVertexID = grid.FindCenterVertex(grid.faces[id].vertices);
+    const int centerVertexID = grid.FindCenterVertex(grid.faces[id].vertices);
     if (!grid.IsValidID(centerVertexID)) return;
 
-    for (i32 faceID : grid.vertices[centerVertexID].faces)
+    for (int faceID : grid.vertices[centerVertexID].faces)
     {
         if (!grid.IsValidID(faceID)) break;
-        for (i32 vertexID : grid.faces[faceID].vertices)
+        for (int vertexID : grid.faces[faceID].vertices)
         {
             if (!grid.IsValidID(vertexID)) break;
             if (vertexID == centerVertexID) continue;
@@ -179,14 +178,14 @@ static void DrawHoveredTile(OrganicGrid &grid, i32 id)
     }
 }
 
-static void AddTileTexture(OrganicGrid &grid, i32 id, Texture2D texture)
+static void AddTileTexture(OrganicGrid &grid, int id, Texture2D texture)
 {
     if (id < 0 || id >= grid.faces.size() || grid.vertices.empty()) return;
 
-    const i32 centerVertexID = grid.FindCenterVertex(grid.faces[id].vertices);
+    const int centerVertexID = grid.FindCenterVertex(grid.faces[id].vertices);
     if (!grid.IsValidID(centerVertexID)) return;
 
-    for (i32 faceID : grid.vertices[centerVertexID].faces)
+    for (int faceID : grid.vertices[centerVertexID].faces)
     {
         if (!grid.IsValidID(faceID)) break;
         grid.faces[faceID].texture = texture;
@@ -203,10 +202,10 @@ int main()
     Texture2D tile2 = LoadTexture("../Resource/tile_2.png");
     Texture2D tile3 = LoadTexture("../Resource/tile_3.png");
 
-    i32 radius = 3;
-    r32 width = 50.0f;
-    r32 triangleChance = 0.2f;
-    r32 strength = 0.1f;
+    int radius = 3;
+    float width = 50.0f;
+    float triangleChance = 0.2f;
+    float strength = 0.1f;
 
     OrganicGrid grid(radius, width, { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f });
     grid.BuildRelaxed();
@@ -217,17 +216,17 @@ int main()
         TextureButton{ Rectangle{ GetScreenWidth() / 2.0f - 24.0f, GetScreenHeight() - 64.0f, 48.0f, 48.0f }, tile2 },
         TextureButton{ Rectangle{ GetScreenWidth() / 2.0f + 40.0f, GetScreenHeight() - 64.0f, 48.0f, 48.0f }, tile3 },
     };
-    i32 selectedTextureIndex = 0;
+    int selectedTextureIndex = 0;
 
-    const Slider radiusSlider = { Rectangle{ (r32)GetScreenWidth() - 200.0f, 120.0f, 160.0f, 4.0f }, 1.0f, 10.0f, "Radius", true };
-    const Slider widthSlider = { Rectangle{ (r32)GetScreenWidth() - 200.0f, 150.0f, 160.0f, 4.0f }, 1.0f, 150.0f, "Width", false };
-    const Slider triangleSlider = { Rectangle{ (r32)GetScreenWidth() - 200.0f, 180.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Triangle chance", false };
-    const Slider strengthSlider = { Rectangle{ (r32)GetScreenWidth() - 200.0f, 210.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Strength", false };
+    const Slider radiusSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 120.0f, 160.0f, 4.0f }, 1.0f, 10.0f, "Radius", true };
+    const Slider widthSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 150.0f, 160.0f, 4.0f }, 1.0f, 150.0f, "Width", false };
+    const Slider triangleSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 180.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Triangle chance", false };
+    const Slider strengthSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 210.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Strength", false };
 
     while (!WindowShouldClose())
     {
         const Vector2 pos = GetMousePosition();
-        const i32 hovered = grid.SelectFace(pos);
+        const int hovered = grid.SelectFace(pos);
 
         const bool mouseDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
         const bool mouseClicked = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
@@ -237,16 +236,16 @@ int main()
         else if (IsKeyReleased(KEY_W)) grid.Relax(-strength, width / 1.5f, width * 1.5f);
         else if (IsKeyReleased(KEY_R)) grid.BuildRelaxed();
 
-        const i32 clickedButton = UpdateTextureButtons(textureButtons, pos, mouseClicked, uiConsumed);
+        const int clickedButton = UpdateTextureButtons(textureButtons, pos, mouseClicked, uiConsumed);
         if (clickedButton >= 0) selectedTextureIndex = clickedButton;
 
-        r32 radiusValue = (r32)radius;
+        float radiusValue = (float)radius;
         const bool radiusChanged = UpdateSlider(radiusSlider, pos, mouseDown, radiusValue, uiConsumed);
         const bool widthChanged = UpdateSlider(widthSlider, pos, mouseDown, width, uiConsumed);
         const bool triangleChanged = UpdateSlider(triangleSlider, pos, mouseDown, triangleChance, uiConsumed);
         const bool strengthChanged = UpdateSlider(strengthSlider, pos, mouseDown, strength, uiConsumed);
 
-        if (radiusChanged) radius = (i32)radiusValue;
+        if (radiusChanged) radius = (int)radiusValue;
         if (radiusChanged || widthChanged || triangleChanged || strengthChanged)
         {
             grid = OrganicGrid(radius, width, { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f });
@@ -262,7 +261,7 @@ int main()
         BeginDrawing();
         ClearBackground(BLACK);
 
-        DrawSlider(radiusSlider, (r32)radius);
+        DrawSlider(radiusSlider, (float)radius);
         DrawSlider(widthSlider, width);
         DrawSlider(triangleSlider, triangleChance);
         DrawSlider(strengthSlider, strength);

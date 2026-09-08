@@ -17,10 +17,10 @@
 #include <raymath.h>
 #include <rlgl.h>
 
-constexpr r32 SQRT3 = 1.7320508f;
+constexpr float SQRT3 = 1.7320508f;
 
 
-OrganicGrid::OrganicGrid(i32 radius, r32 width, Vector2 position) :
+OrganicGrid::OrganicGrid(int radius, float width, Vector2 position) :
     radius(radius), edgeWidth(width), position(position) {}
 
 void OrganicGrid::BuildRelaxed()
@@ -29,7 +29,7 @@ void OrganicGrid::BuildRelaxed()
     Relax(0.3f, edgeWidth / 1.5f, edgeWidth * 1.5f);
 }
 
-void OrganicGrid::Build(r32 triangleBias)
+void OrganicGrid::Build(float triangleBias)
 {
     // Available tile shapes from which they are split into faces
     enum Shape { None, CubeLeft, CubeRight, TriangleUp, TriangleDown };
@@ -39,17 +39,17 @@ void OrganicGrid::Build(r32 triangleBias)
     faces.clear();
 
     // Assuming max, couldn't figure out proper formula
-    const i32 maxTriangles = radius * radius * 6;
-    const i32 maxFaces = maxTriangles * 3;
-    const i32 maxEdges = maxFaces * 2;
-    const i32 maxVertices = maxEdges * 6;
+    const int maxTriangles = radius * radius * 6;
+    const int maxFaces = maxTriangles * 3;
+    const int maxEdges = maxFaces * 2;
+    const int maxVertices = maxEdges * 6;
 
     vertices.reserve(maxVertices);
     edges.reserve(maxEdges);
     faces.reserve(maxFaces);
 
-    const r32 horizontal = 1.5f * edgeWidth;
-    const r32 vertical = SQRT3 * edgeWidth;
+    const float horizontal = 1.5f * edgeWidth;
+    const float vertical = SQRT3 * edgeWidth;
 
     // It was simpler to keep all vectors required to construct a shape directly
     // rather then accessing them by index from the lookup buffers
@@ -62,7 +62,7 @@ void OrganicGrid::Build(r32 triangleBias)
     Vector2 qBottom = INVALID;
     Vector2 qBottomLeft = INVALID;
 
-    for (i32 r = -radius; r <= radius; ++r)
+    for (int r = -radius; r <= radius; ++r)
     {
         // Give the expressions meaningful names before things get ugly (Dont worry, they will...)
 
@@ -70,9 +70,9 @@ void OrganicGrid::Build(r32 triangleBias)
         const bool isUpperHalfRow = r <= 0;
         const bool isLowerHalfRow = r > 0;
 
-        const i32 qFirst = std::max(-radius, -r - radius);
-        const i32 qLast = std::min(radius, -r + radius);
-        i32 q = isFirstRow ? qLast + 1 : qFirst; // Skip first row
+        const int qFirst = std::max(-radius, -r - radius);
+        const int qLast = std::min(radius, -r + radius);
+        int q = isFirstRow ? qLast + 1 : qFirst; // Skip first row
 
         const Vector2 qBottomFirst = { position.x + horizontal * qFirst, position.y + vertical * (r + qFirst * 0.5f) };
         const Vector2 qBottomLast = { position.x + horizontal * qLast, position.y + vertical * (r + qLast * 0.5f) };
@@ -106,13 +106,13 @@ void OrganicGrid::Build(r32 triangleBias)
             //  \     \
             //   O - - X
 
-            constexpr i32 prioritySize = 4;
+            constexpr int prioritySize = 4;
             constexpr Shape cubePriority[prioritySize] = { Shape::CubeLeft, Shape::CubeRight, Shape::TriangleUp, Shape::TriangleDown };
             constexpr Shape trianglePriority[prioritySize] = { Shape::TriangleUp, Shape::TriangleDown, Shape::CubeLeft, Shape::CubeRight };
             const Shape *priority = (GetRandomValue(1, 100) / 100.0f <= triangleBias) ? trianglePriority : cubePriority;
 
             Shape currentShape = Shape::None;
-            for (i32 i = 0; i < prioritySize; ++i)
+            for (int i = 0; i < prioritySize; ++i)
             {
                 currentShape = priority[i];
                 switch (currentShape)
@@ -127,28 +127,28 @@ void OrganicGrid::Build(r32 triangleBias)
                         qBottomLeft = (isUpperHalfRow && isFirstVertex) ? qBottomFirst : qBottom;
                         qBottom = { position.x + horizontal * (q + 1), position.y + vertical * (r + (q + 1) * 0.5f) };
 
-                        const i32 topLeft = EmplaceVertex(qTop);
-                        const i32 top = EmplaceVertex(Vector2Lerp(qTop, qTopRight, 0.5f));
-                        const i32 topRight = EmplaceVertex(qTopRight);
-                        const i32 middleLeft = EmplaceVertex(Vector2Lerp(qBottomLeft, qTop, 0.5f));
-                        const i32 middle = EmplaceVertex(Vector2Lerp(qBottomLeft, qTopRight, 0.5f), Vertex::Center);
-                        const i32 middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTopRight, 0.5f));
-                        const i32 bottomLeft = EmplaceVertex(qBottomLeft);
-                        const i32 bottom = EmplaceVertex(Vector2Lerp(qBottom, qBottomLeft, 0.5f));
-                        const i32 bottomRight = EmplaceVertex(qBottom);
+                        const int topLeft = EmplaceVertex(qTop);
+                        const int top = EmplaceVertex(Vector2Lerp(qTop, qTopRight, 0.5f));
+                        const int topRight = EmplaceVertex(qTopRight);
+                        const int middleLeft = EmplaceVertex(Vector2Lerp(qBottomLeft, qTop, 0.5f));
+                        const int middle = EmplaceVertex(Vector2Lerp(qBottomLeft, qTopRight, 0.5f), Vertex::Center);
+                        const int middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTopRight, 0.5f));
+                        const int bottomLeft = EmplaceVertex(qBottomLeft);
+                        const int bottom = EmplaceVertex(Vector2Lerp(qBottom, qBottomLeft, 0.5f));
+                        const int bottomRight = EmplaceVertex(qBottom);
 
-                        const i32 topLeftToTop = EmplaceEdge(topLeft, top);
-                        const i32 topRightToTop = EmplaceEdge(topRight, top);
-                        const i32 topToMiddle = EmplaceEdge(top, middle);
-                        const i32 middleLeftToTopLeft = EmplaceEdge(middleLeft, topLeft);
-                        const i32 middleLeftToBottomLeft = EmplaceEdge(middleLeft, bottomLeft);
-                        const i32 middleRightToTopRight = EmplaceEdge(middleRight, topRight);
-                        const i32 middleRightToBottomRight = EmplaceEdge(middleRight, bottomRight);
-                        const i32 middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
-                        const i32 middleToMiddleRight = EmplaceEdge(middle, middleRight);
-                        const i32 bottomLeftToBottom = EmplaceEdge(bottomLeft, bottom);
-                        const i32 bottomRightToBottom = EmplaceEdge(bottomRight, bottom);
-                        const i32 bottomToMiddle = EmplaceEdge(bottom, middle);
+                        const int topLeftToTop = EmplaceEdge(topLeft, top);
+                        const int topRightToTop = EmplaceEdge(topRight, top);
+                        const int topToMiddle = EmplaceEdge(top, middle);
+                        const int middleLeftToTopLeft = EmplaceEdge(middleLeft, topLeft);
+                        const int middleLeftToBottomLeft = EmplaceEdge(middleLeft, bottomLeft);
+                        const int middleRightToTopRight = EmplaceEdge(middleRight, topRight);
+                        const int middleRightToBottomRight = EmplaceEdge(middleRight, bottomRight);
+                        const int middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
+                        const int middleToMiddleRight = EmplaceEdge(middle, middleRight);
+                        const int bottomLeftToBottom = EmplaceEdge(bottomLeft, bottom);
+                        const int bottomRightToBottom = EmplaceEdge(bottomRight, bottom);
+                        const int bottomToMiddle = EmplaceEdge(bottom, middle);
 
                         // Vertices are sorted around their center in counter-clockwise order
                         EmplaceFace({ middle, top, topLeft, middleLeft }, { middleToMiddleLeft, middleLeftToTopLeft, topLeftToTop, topToMiddle });
@@ -171,28 +171,28 @@ void OrganicGrid::Build(r32 triangleBias)
                         qBottomLeft = (isLowerHalfRow && isFirstVertex) ? qBottomFirst : qBottom;
                         qBottom = { position.x + horizontal * (q + 1), position.y + vertical * (r + (q + 1) * 0.5f) };
 
-                        const i32 topLeft = EmplaceVertex(qTop);
-                        const i32 top = EmplaceVertex(Vector2Lerp(qTop, qTopRight, 0.5f));
-                        const i32 topRight = EmplaceVertex(qTopRight);
-                        const i32 middleLeft = EmplaceVertex(Vector2Lerp(qBottomLeft, qTop, 0.5f));
-                        const i32 middle = EmplaceVertex(Vector2Lerp(qBottom, qTop, 0.5f), Vertex::Center);
-                        const i32 middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTopRight, 0.5f));
-                        const i32 bottomLeft = EmplaceVertex(qBottomLeft);
-                        const i32 bottom = EmplaceVertex(Vector2Lerp(qBottom, qBottomLeft, 0.5f));
-                        const i32 bottomRight = EmplaceVertex(qBottom);
+                        const int topLeft = EmplaceVertex(qTop);
+                        const int top = EmplaceVertex(Vector2Lerp(qTop, qTopRight, 0.5f));
+                        const int topRight = EmplaceVertex(qTopRight);
+                        const int middleLeft = EmplaceVertex(Vector2Lerp(qBottomLeft, qTop, 0.5f));
+                        const int middle = EmplaceVertex(Vector2Lerp(qBottom, qTop, 0.5f), Vertex::Center);
+                        const int middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTopRight, 0.5f));
+                        const int bottomLeft = EmplaceVertex(qBottomLeft);
+                        const int bottom = EmplaceVertex(Vector2Lerp(qBottom, qBottomLeft, 0.5f));
+                        const int bottomRight = EmplaceVertex(qBottom);
 
-                        const i32 topLeftToTop = EmplaceEdge(topLeft, top);
-                        const i32 topRightToTop = EmplaceEdge(topRight, top);
-                        const i32 topToMiddle = EmplaceEdge(top, middle);
-                        const i32 middleLeftToTopLeft = EmplaceEdge(middleLeft, topLeft);
-                        const i32 middleLeftToBottomLeft = EmplaceEdge(middleLeft, bottomLeft);
-                        const i32 middleRightToTopRight = EmplaceEdge(middleRight, topRight);
-                        const i32 middleRightToBottomRight = EmplaceEdge(middleRight, bottomRight);
-                        const i32 middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
-                        const i32 middleToMiddleRight = EmplaceEdge(middle, middleRight);
-                        const i32 bottomLeftToBottom = EmplaceEdge(bottomLeft, bottom);
-                        const i32 bottomRightToBottom = EmplaceEdge(bottomRight, bottom);
-                        const i32 bottomToMiddle = EmplaceEdge(bottom, middle);
+                        const int topLeftToTop = EmplaceEdge(topLeft, top);
+                        const int topRightToTop = EmplaceEdge(topRight, top);
+                        const int topToMiddle = EmplaceEdge(top, middle);
+                        const int middleLeftToTopLeft = EmplaceEdge(middleLeft, topLeft);
+                        const int middleLeftToBottomLeft = EmplaceEdge(middleLeft, bottomLeft);
+                        const int middleRightToTopRight = EmplaceEdge(middleRight, topRight);
+                        const int middleRightToBottomRight = EmplaceEdge(middleRight, bottomRight);
+                        const int middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
+                        const int middleToMiddleRight = EmplaceEdge(middle, middleRight);
+                        const int bottomLeftToBottom = EmplaceEdge(bottomLeft, bottom);
+                        const int bottomRightToBottom = EmplaceEdge(bottomRight, bottom);
+                        const int bottomToMiddle = EmplaceEdge(bottom, middle);
 
                         // Vertices are sorted around their center in counter-clockwise order
                         EmplaceFace({ middle, top, topLeft, middleLeft }, { middleToMiddleLeft, middleLeftToTopLeft, topLeftToTop, topToMiddle });
@@ -214,23 +214,23 @@ void OrganicGrid::Build(r32 triangleBias)
                         qBottomLeft = (isUpperHalfRow && isFirstVertex) ? qBottomFirst : qBottom;
                         qBottom = { position.x + horizontal * (q + 1), position.y + vertical * (r + (q + 1) * 0.5f) };
 
-                        const i32 top = EmplaceVertex(qTop);
-                        const i32 middleLeft = EmplaceVertex(Vector2Lerp(qBottomLeft, qTop, 0.5f));
-                        const i32 middle = EmplaceVertex(CentroidTriangle(qBottomLeft, qBottom, qTop), Vertex::Center);
-                        const i32 middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTop, 0.5f));
-                        const i32 bottomLeft = EmplaceVertex(qBottomLeft);
-                        const i32 bottom = EmplaceVertex(Vector2Lerp(qBottom, qBottomLeft, 0.5f));
-                        const i32 bottomRight = EmplaceVertex(qBottom);
+                        const int top = EmplaceVertex(qTop);
+                        const int middleLeft = EmplaceVertex(Vector2Lerp(qBottomLeft, qTop, 0.5f));
+                        const int middle = EmplaceVertex(CentroidTriangle(qBottomLeft, qBottom, qTop), Vertex::Center);
+                        const int middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTop, 0.5f));
+                        const int bottomLeft = EmplaceVertex(qBottomLeft);
+                        const int bottom = EmplaceVertex(Vector2Lerp(qBottom, qBottomLeft, 0.5f));
+                        const int bottomRight = EmplaceVertex(qBottom);
 
-                        const i32 topToMiddleRight = EmplaceEdge(top, middleRight);
-                        const i32 middleLeftToTop = EmplaceEdge(middleLeft, top);
-                        const i32 middleLeftToBottomLeft = EmplaceEdge(middleLeft, bottomLeft);
-                        const i32 middleRightToBottomRight = EmplaceEdge(middleRight, bottomRight);
-                        const i32 middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
-                        const i32 middleToMiddleRight = EmplaceEdge(middle, middleRight);
-                        const i32 bottomLeftToBottom = EmplaceEdge(bottomLeft, bottom);
-                        const i32 bottomRightToBottom = EmplaceEdge(bottomRight, bottom);
-                        const i32 bottomToMiddle = EmplaceEdge(bottom, middle);
+                        const int topToMiddleRight = EmplaceEdge(top, middleRight);
+                        const int middleLeftToTop = EmplaceEdge(middleLeft, top);
+                        const int middleLeftToBottomLeft = EmplaceEdge(middleLeft, bottomLeft);
+                        const int middleRightToBottomRight = EmplaceEdge(middleRight, bottomRight);
+                        const int middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
+                        const int middleToMiddleRight = EmplaceEdge(middle, middleRight);
+                        const int bottomLeftToBottom = EmplaceEdge(bottomLeft, bottom);
+                        const int bottomRightToBottom = EmplaceEdge(bottomRight, bottom);
+                        const int bottomToMiddle = EmplaceEdge(bottom, middle);
 
                         EmplaceFace({ middleRight, top, middleLeft, middle }, { middleToMiddleRight, topToMiddleRight, middleLeftToTop, middleToMiddleLeft });
                         EmplaceFace({ bottom, middle, middleLeft, bottomLeft }, { middleToMiddleLeft, middleLeftToBottomLeft, bottomLeftToBottom, bottomToMiddle });
@@ -251,24 +251,24 @@ void OrganicGrid::Build(r32 triangleBias)
                             qBottom = { position.x + horizontal * q, position.y + vertical * (r + q * 0.5f) };
                         }
 
-                        const i32 topLeft = EmplaceVertex(qTop);
-                        const i32 top = EmplaceVertex(Vector2Lerp(qTop, qTopRight, 0.5f));
-                        const i32 topRight = EmplaceVertex(qTopRight);
-                        const i32 middleLeft = EmplaceVertex(Vector2Lerp(qBottom, qTop, 0.5f));
-                        const i32 middle = EmplaceVertex(CentroidTriangle(qBottom, qTop, qTopRight), Vertex::Center);
-                        const i32 middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTopRight, 0.5f));
-                        const i32 bottom = EmplaceVertex(qBottom);
+                        const int topLeft = EmplaceVertex(qTop);
+                        const int top = EmplaceVertex(Vector2Lerp(qTop, qTopRight, 0.5f));
+                        const int topRight = EmplaceVertex(qTopRight);
+                        const int middleLeft = EmplaceVertex(Vector2Lerp(qBottom, qTop, 0.5f));
+                        const int middle = EmplaceVertex(CentroidTriangle(qBottom, qTop, qTopRight), Vertex::Center);
+                        const int middleRight = EmplaceVertex(Vector2Lerp(qBottom, qTopRight, 0.5f));
+                        const int bottom = EmplaceVertex(qBottom);
 
-                        const i32 topLeftToTop = EmplaceEdge(topLeft, top);
-                        const i32 topRightToTop = EmplaceEdge(topRight, top);
-                        const i32 topToMiddle = EmplaceEdge(top, middle);
-                        const i32 middleLeftToTopLeft = EmplaceEdge(middleLeft, topLeft);
-                        const i32 middleLeftToBottom = EmplaceEdge(middleLeft, bottom);
-                        const i32 middleRightToMiddle = EmplaceEdge(middleRight, middle);
-                        const i32 middleRightToTopRight = EmplaceEdge(middleRight, topRight);
-                        const i32 middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
-                        const i32 middleToMiddleRight = EmplaceEdge(middle, middleRight);
-                        const i32 bottomToMiddleRight = EmplaceEdge(bottom, middleRight);
+                        const int topLeftToTop = EmplaceEdge(topLeft, top);
+                        const int topRightToTop = EmplaceEdge(topRight, top);
+                        const int topToMiddle = EmplaceEdge(top, middle);
+                        const int middleLeftToTopLeft = EmplaceEdge(middleLeft, topLeft);
+                        const int middleLeftToBottom = EmplaceEdge(middleLeft, bottom);
+                        const int middleRightToMiddle = EmplaceEdge(middleRight, middle);
+                        const int middleRightToTopRight = EmplaceEdge(middleRight, topRight);
+                        const int middleToMiddleLeft = EmplaceEdge(middle, middleLeft);
+                        const int middleToMiddleRight = EmplaceEdge(middle, middleRight);
+                        const int bottomToMiddleRight = EmplaceEdge(bottom, middleRight);
 
                         // Vertices are sorted around their center in counter-clockwise order
                         EmplaceFace({ top, topLeft, middleLeft, middle }, { topToMiddle, topLeftToTop, middleLeftToTopLeft, middleToMiddleLeft });
@@ -301,7 +301,7 @@ void OrganicGrid::Build(r32 triangleBias)
     faces.shrink_to_fit();
 }
 
-void OrganicGrid::Relax(r32 strength, r32 minEdgeLength, r32 maxEdgeLength)
+void OrganicGrid::Relax(float strength, float minEdgeLength, float maxEdgeLength)
 {
     // Relaxeing the grid by moving non-border edge endpoints toward each other
     // to adjust edge lengths toward the configured range
@@ -313,11 +313,11 @@ void OrganicGrid::Relax(r32 strength, r32 minEdgeLength, r32 maxEdgeLength)
         if (IsBorderVertex(from) || IsBorderVertex(to)) continue;
 
         const Vector2 diff = Vector2Subtract(to.position, from.position);
-        const r32 length = Vector2Length(diff);
+        const float length = Vector2Length(diff);
         if (length < minEdgeLength || length > maxEdgeLength || FloatEquals(length, 0.0f)) continue;
 
         // Move each endpoint toward the midpoint
-        const r32 excess = length - maxEdgeLength;
+        const float excess = length - maxEdgeLength;
         const Vector2 dir = Vector2Scale(diff, 1.0f / length);
         const Vector2 move = Vector2Scale(dir, excess * 0.5f * strength);
 
@@ -329,45 +329,45 @@ void OrganicGrid::Relax(r32 strength, r32 minEdgeLength, r32 maxEdgeLength)
     }
 }
 
-i32 OrganicGrid::EmplaceVertex(Vector2 pos, u8 flags)
+int OrganicGrid::EmplaceVertex(Vector2 pos, unsigned char flags)
 {
     // Trivially checking for duplicates
-    for (i32 i = 0; i < vertices.size(); ++i)
+    for (int i = 0; i < vertices.size(); ++i)
     {
         if (Vector2Equals(vertices[i].position, pos)) return i;
     }
 
-    constexpr std::array<i32, 6> NO_CONNECTIONS = { -1, -1, -1, -1, -1, -1 };
+    constexpr std::array<int, 6> NO_CONNECTIONS = { -1, -1, -1, -1, -1, -1 };
     vertices.emplace_back( Vertex{ pos, flags, NO_CONNECTIONS, NO_CONNECTIONS });
 
-    return (i32)vertices.size() - 1;
+    return (int)vertices.size() - 1;
 }
 
-i32 OrganicGrid::EmplaceEdge(i32 from, i32 to)
+int OrganicGrid::EmplaceEdge(int from, int to)
 {
     // Trivially checking for duplicates
-    for (i32 i = 0; i < edges.size(); ++i)
+    for (int i = 0; i < edges.size(); ++i)
     {
         if ((edges[i].from == from && edges[i].to == to) || (edges[i].from == to && edges[i].to == from)) return i;
     }
 
     edges.emplace_back(Edge{ from, to, { -1, -1 } });
-    const i32 id = (i32)edges.size() - 1;
+    const int id = (int)edges.size() - 1;
 
     Connect(vertices[from].edges, id);
     Connect(vertices[to].edges, id);
     return id;
 }
 
-i32 OrganicGrid::EmplaceFace(std::array<i32, 4> vertexIDs, std::array<i32, 4> edgeIDs)
+int OrganicGrid::EmplaceFace(std::array<int, 4> vertexIDs, std::array<int, 4> edgeIDs)
 {
      // Trivially checking for duplicates
-    for (i32 i = 0; i < faces.size(); ++i)
+    for (int i = 0; i < faces.size(); ++i)
     {
         const Face &face = faces[i];
         bool isSame = true;
 
-        for (i32 j = 0; j < 4; ++j)
+        for (int j = 0; j < 4; ++j)
         {
             if (std::ranges::find(vertexIDs, face.vertices[j]) == vertexIDs.end() ||
                 std::ranges::find(edgeIDs, face.edges[j]) == edgeIDs.end())
@@ -382,15 +382,15 @@ i32 OrganicGrid::EmplaceFace(std::array<i32, 4> vertexIDs, std::array<i32, 4> ed
 
     constexpr Texture2D NO_TEXTURE = { 0 };
     faces.emplace_back(Face{ edgeIDs, vertexIDs, NO_TEXTURE });
-    const i32 id = (i32)faces.size() - 1;
+    const int id = (int)faces.size() - 1;
 
-    for (i32 vertexID : vertexIDs)
+    for (int vertexID : vertexIDs)
     {
         Vertex &vertex = vertices[vertexID];
         Connect(vertex.faces, id);
     }
 
-    for (i32 edgeID : edgeIDs)
+    for (int edgeID : edgeIDs)
     {
         Edge &edge = edges[edgeID];
         Connect(edge.faces, id);
@@ -399,33 +399,33 @@ i32 OrganicGrid::EmplaceFace(std::array<i32, 4> vertexIDs, std::array<i32, 4> ed
     return id;
 }
 
-void OrganicGrid::Connect(std::span<i32> source, i32 id)
+void OrganicGrid::Connect(std::span<int> source, int id)
 {
     if (!IsValidID(id)) return;
-    for (i32 i = 0; i < source.size(); ++i)
+    for (int i = 0; i < source.size(); ++i)
     {
         if (source[i] == id) return;
         if (!IsValidID(source[i])) { source[i] = id; return; }
     }
 }
 
-i32 OrganicGrid::SelectFace(Vector2 world)
+int OrganicGrid::SelectFace(Vector2 world)
 {
     if (!Contains(world)) return -1;
 
     // Brute forced... can be improved in future
-    for (i32 i = 0; i < faces.size(); ++i)
+    for (int i = 0; i < faces.size(); ++i)
     {
         Face face = faces[i];
         if (face.vertices.empty()) continue;
 
         // Based on CheckCollisionPointPoly
         bool collision = false;
-        for (i32 j = 0; j < face.vertices.size(); ++j)
+        for (int j = 0; j < face.vertices.size(); ++j)
         {
             if (!IsValidID(face.vertices[j])) break;
 
-            const i32 next = (j + 1) % face.vertices.size();
+            const int next = (j + 1) % face.vertices.size();
             const Vector2 vc = vertices[face.vertices[j]].position;
             const Vector2 vn = vertices[face.vertices[next]].position;
 
@@ -440,7 +440,7 @@ i32 OrganicGrid::SelectFace(Vector2 world)
     return -1;
 }
 
-void OrganicGrid::AddFaceTexture(i32 id, Texture2D texture)
+void OrganicGrid::AddFaceTexture(int id, Texture2D texture)
 {
     if (id < 0 || id >= faces.size() || texture.id == 0) return;
     faces[id].texture = texture;
@@ -448,8 +448,8 @@ void OrganicGrid::AddFaceTexture(i32 id, Texture2D texture)
 
 bool OrganicGrid::Contains(Vector2 world)
 {
-    const r32 horizontal = 1.5f * edgeWidth;
-    const r32 vertical = SQRT3 * edgeWidth;
+    const float horizontal = 1.5f * edgeWidth;
+    const float vertical = SQRT3 * edgeWidth;
 
     const Vector2 topFirst = { position.x + horizontal * 0, position.y + vertical * (-radius + 0 * 0.5f) };
     const Vector2 topLast = { position.x + horizontal * radius, position.y + vertical * (-radius + radius * 0.5f) };
@@ -462,9 +462,9 @@ bool OrganicGrid::Contains(Vector2 world)
     return CheckCollisionPointPoly(world, perimeter, sizeof(perimeter) / sizeof(Vector2));
 }
 
-i32 OrganicGrid::FindCenterVertex(std::span<const i32> vertexIDs)
+int OrganicGrid::FindCenterVertex(std::span<const int> vertexIDs)
 {
-    for (i32 vertexID : vertexIDs)
+    for (int vertexID : vertexIDs)
     {
         if (!IsValidID(vertexID)) break;
         if (vertices[vertexID].flags & Vertex::Flags::Center) return vertexID;
@@ -477,17 +477,17 @@ Vector2 OrganicGrid::CentroidTriangle(Vector2 a, Vector2 b, Vector2 c)
     return Vector2Scale(Vector2Add(Vector2Add(a, b), c), 1.0f / 3.0f);
 }
 
-Vector2 OrganicGrid::CentroidPoly(std::span<const i32> vertexIDs)
+Vector2 OrganicGrid::CentroidPoly(std::span<const int> vertexIDs)
 {
-    r32 area = 0.0f;
+    float area = 0.0f;
     Vector2 centroid = Vector2Zero();
 
-    for (i32 i = 0; i < vertexIDs.size(); ++i)
+    for (int i = 0; i < vertexIDs.size(); ++i)
     {
         const Vector2 p0 = vertices[vertexIDs[i]].position;
         const Vector2 p1 = vertices[vertexIDs[(i + 1) % vertexIDs.size()]].position;
 
-        const r32 cross = p0.x * p1.y - p1.x * p0.y;
+        const float cross = p0.x * p1.y - p1.x * p0.y;
 
         area += cross;
         centroid.x += (p0.x + p1.x) * cross;
@@ -499,7 +499,7 @@ Vector2 OrganicGrid::CentroidPoly(std::span<const i32> vertexIDs)
 
     // Degenerate polygon
     centroid = Vector2Zero();
-    for (i32 i = 0; i < vertexIDs.size(); ++i)
+    for (int i = 0; i < vertexIDs.size(); ++i)
     {
         centroid = Vector2Add(centroid, vertices[vertexIDs[i]].position);
     }
@@ -508,8 +508,8 @@ Vector2 OrganicGrid::CentroidPoly(std::span<const i32> vertexIDs)
 
 bool OrganicGrid::IsBorderVertex(Vertex vertex)
 {
-    i32 count = 0;
-    for (i32 edgeID : vertex.edges)
+    int count = 0;
+    for (int edgeID : vertex.edges)
     {
         if (count > 2) return false;
         if (!IsValidID(edgeID)) break;
@@ -524,7 +524,7 @@ bool OrganicGrid::IsBorderEdge(Edge edge)
     return IsValidID(edge.faces[0]) && !IsValidID(edge.faces[1]);
 }
 
-bool OrganicGrid::IsValidID(i32 id)
+bool OrganicGrid::IsValidID(int id)
 {
     return id > -1;
 }
