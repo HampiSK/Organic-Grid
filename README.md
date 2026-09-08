@@ -16,6 +16,7 @@ relaxation, and simple tile placement), not a copy of its code or assets.
 ## Getting Started
 1. **Setup**
    Navigate to the `/Setup` directory and run the appropriate setup file for your operating system.
+   - **Note:** The setup process will execute the Premake executable. If you want to avoid this, download Premake v5.0.0-beta2 (or latest) yourself from the [official release page](https://github.com/premake/premake-core/releases/tag/v5.0.0-beta2).
    - **Note:** The Linux setup has not been thoroughly tested.
 2. **Dependencies**
    All dependencies (raylib) will be automatically downloaded and configured (hopefully).
