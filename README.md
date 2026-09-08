@@ -6,6 +6,8 @@ This project is an attempt to understand and reproduce, from
 scratch, the pieces behind Oskar Stålberg's *Townscaper* (grid generation,
 relaxation, and simple tile placement), not a copy of its code or assets.
 
+![Demo](demo.gif)
+
 ## Requirements
 - [Visual Studio 2022](https://visualstudio.com) (Not strictly required, but the included setup scripts support this version)
 - [Clang](https://clang.llvm.org/) (Linux)
