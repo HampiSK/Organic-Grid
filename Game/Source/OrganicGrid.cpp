@@ -106,13 +106,13 @@ void OrganicGrid::Build(float triangleBias)
             //  \     \
             //   O - - X
 
-            constexpr int prioritySize = 4;
-            constexpr Shape cubePriority[prioritySize] = { Shape::CubeLeft, Shape::CubeRight, Shape::TriangleUp, Shape::TriangleDown };
-            constexpr Shape trianglePriority[prioritySize] = { Shape::TriangleUp, Shape::TriangleDown, Shape::CubeLeft, Shape::CubeRight };
-            const Shape *priority = (GetRandomValue(1, 100) / 100.0f <= triangleBias) ? trianglePriority : cubePriority;
+            constexpr int PRIORITY_SIZE = 4;
+            constexpr Shape PRIORITY_CUBE[PRIORITY_SIZE] = { Shape::CubeLeft, Shape::CubeRight, Shape::TriangleUp, Shape::TriangleDown };
+            constexpr Shape PRIORITY_TRIANGLE[PRIORITY_SIZE] = { Shape::TriangleUp, Shape::TriangleDown, Shape::CubeLeft, Shape::CubeRight };
+            const Shape *priority = (GetRandomValue(1, 100) / 100.0f <= triangleBias) ? PRIORITY_TRIANGLE : PRIORITY_CUBE;
 
             Shape currentShape = Shape::None;
-            for (int i = 0; i < prioritySize; ++i)
+            for (int i = 0; i < PRIORITY_SIZE; ++i)
             {
                 currentShape = priority[i];
                 switch (currentShape)
