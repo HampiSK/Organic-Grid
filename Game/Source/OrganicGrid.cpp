@@ -301,7 +301,7 @@ void OrganicGrid::Build(float triangleBias)
 
 void OrganicGrid::Relax(float strength, float minEdgeLength, float maxEdgeLength)
 {
-    // Relaxeing the grid by moving non-border edge endpoints toward each other
+    // Relaxing the grid by moving non-border edge endpoints toward each other
     // to adjust edge lengths toward the configured range
 
     for (const Edge &edge : edges)
