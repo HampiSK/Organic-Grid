@@ -1,12 +1,18 @@
 # Organic Grid
 
-A small C++/raylib experiment that generates an irregular, quadrilateral, 2D grid.
+A small C++/raylib experiment that generates an irregular quadrilateral 2D grid.
 
-This project is an attempt to understand and reproduce, from
-scratch, the pieces behind Oskar Stålberg's *Townscaper* (grid generation,
-relaxation, and simple tile placement), not a copy of its code or assets.
+This project is an attempt to understand and reproduce, from scratch, some of the ideas behind Oskar Stålberg's Townscaper - grid generation, relaxation, and simple tile placement.
 
 ![Demo](demo.gif)
+
+### Approach
+
+I intentionally chose not to look for tutorials or existing implementations. Instead, I treated it as a challenge to figure out the techniques on my own.
+
+Unlike the approach used in Townscaper, I’m building the quadrilateral grid directly rather than starting with triangles arranged within hexagons and then randomly joining some of them into quads. For each new cell, I decide which shape to create based on factors such as priority, whether it fits the existing grid and a configurable triangle chance.
+
+The relaxation step is simple: non-border edge endpoints are moved toward each other to bring edge lengths closer to the configured range.
 
 ## Requirements
 - [Visual Studio 2022](https://visualstudio.com) (Not strictly required, but the included setup scripts support this version)
