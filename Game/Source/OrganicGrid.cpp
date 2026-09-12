@@ -38,11 +38,9 @@ void OrganicGrid::Build(float triangleBias)
     edges.clear();
     faces.clear();
 
-    // Assuming max, couldn't figure out proper formula
-    const int maxTriangles = radius * radius * 6;
-    const int maxFaces = maxTriangles * 3;
-    const int maxEdges = maxFaces * 2;
-    const int maxVertices = maxEdges * 6;
+    const int maxFaces = (2 + ArithmeticProgressionSum(6, 4, radius - 1)) * 3;
+    const int maxVertices = (8 + ArithmeticProgressionSum(20, 12, radius - 1)) * 3 + 1;
+    const int maxEdges = (14 + ArithmeticProgressionSum(38, 24, radius - 1)) * 3;
 
     vertices.reserve(maxVertices);
     edges.reserve(maxEdges);
@@ -527,4 +525,9 @@ bool OrganicGrid::IsBorderEdge(Edge edge)
 bool OrganicGrid::IsValidID(int id)
 {
     return id > -1;
+}
+
+int OrganicGrid::ArithmeticProgressionSum(int first, int difference, int count)
+{
+    return count * (2 * first + (count - 1) * difference) / 2;
 }

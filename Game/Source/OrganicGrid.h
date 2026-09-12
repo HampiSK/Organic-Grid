@@ -45,4 +45,5 @@ private:
     void Connect(std::span<int> source, int id);
     Vector2 CentroidTriangle(Vector2 a, Vector2 b, Vector2 c);
     Vector2 CentroidPoly(std::span<const int> vertexIDs);
+    int ArithmeticProgressionSum(int first, int difference, int count);
 };
