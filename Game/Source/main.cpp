@@ -63,7 +63,7 @@ static void DrawSlider(const Slider &slider, float value)
     const float handleX = slider.track.x + t * slider.track.width;
     DrawCircle((int)handleX, (int)midY, 4.0f, LIGHTGRAY);
 
-    if (slider.isInteger)  DrawText(TextFormat("%s: %d", slider.label, (int)value), (int)slider.track.x, (int)(slider.track.y - 18), 16, LIGHTGRAY);
+    if (slider.isInteger) DrawText(TextFormat("%s: %d", slider.label, (int)value), (int)slider.track.x, (int)(slider.track.y - 18), 16, LIGHTGRAY);
     else DrawText(TextFormat("%s: %.2f", slider.label, value), (int)slider.track.x, (int)(slider.track.y - 18), 16, LIGHTGRAY);
 }
 
@@ -198,17 +198,19 @@ int main()
     InitWindow(1280, 720, "Organic Grid");
     SetTargetFPS(60);
 
-    Texture2D tile1 = LoadTexture("../Resource/tile_1.png");
-    Texture2D tile2 = LoadTexture("../Resource/tile_2.png");
-    Texture2D tile3 = LoadTexture("../Resource/tile_3.png");
-
     int radius = 3;
     float width = 50.0f;
     float triangleChance = 0.2f;
     float strength = 0.1f;
 
-    OrganicGrid grid(radius, width, { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f });
-    grid.BuildRelaxed();
+    const Slider radiusSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 120.0f, 160.0f, 4.0f }, 1.0f, 10.0f, "Radius", true };
+    const Slider widthSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 150.0f, 160.0f, 4.0f }, 1.0f, 150.0f, "Width", false };
+    const Slider triangleSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 180.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Triangle chance", false };
+    const Slider strengthSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 210.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Strength", false };
+
+    Texture2D tile1 = LoadTexture("../Resource/tile_1.png");
+    Texture2D tile2 = LoadTexture("../Resource/tile_2.png");
+    Texture2D tile3 = LoadTexture("../Resource/tile_3.png");
 
     const std::array<TextureButton, 3> textureButtons =
     {
@@ -218,10 +220,8 @@ int main()
     };
     int selectedTextureIndex = 0;
 
-    const Slider radiusSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 120.0f, 160.0f, 4.0f }, 1.0f, 10.0f, "Radius", true };
-    const Slider widthSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 150.0f, 160.0f, 4.0f }, 1.0f, 150.0f, "Width", false };
-    const Slider triangleSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 180.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Triangle chance", false };
-    const Slider strengthSlider = { Rectangle{ (float)GetScreenWidth() - 200.0f, 210.0f, 160.0f, 4.0f }, 0.0f, 1.0f, "Strength", false };
+    OrganicGrid grid(radius, width, { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f });
+    grid.BuildRelaxed();
 
     while (!WindowShouldClose())
     {
@@ -271,7 +271,6 @@ int main()
         DrawSlider(strengthSlider, strength);
 
         DrawKeyLegend(GetScreenWidth());
-
 
         DrawCircleV(pos, 4, WHITE);
 
