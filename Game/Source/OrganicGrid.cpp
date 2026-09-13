@@ -440,6 +440,7 @@ int OrganicGrid::SelectFace(Vector2 world)
 
 void OrganicGrid::AddFaceTexture(int id, Texture2D texture)
 {
+    // This helped me a lot: https://youtu.be/Aq5WXmQQooo?si=BVodaMT9A0PsCeTU
     if (id < 0 || id >= faces.size() || texture.id == 0) return;
     faces[id].texture = texture;
 }
